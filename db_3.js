@@ -31,40 +31,22 @@ async function create() {
       { firstName: 'Tyler', lastName: 'Kumar'},
       { firstName: 'Sabi', lastName: 'Kumar'}
     ], { validate: true }, { fields: ['firstName', 'lastName']})
-    const myUser = await User.findAll({
-      attributes: [[db.fn('COUNT', db.col('firstName')), 'n_names'], 'lastName'],
-      where: {
-        firstName: {
-          [Op.or]: ['Peter', 'Sabi', 'Tyler']
-        },
-        id: [1,2,3,4],
-      },
-      group: 'lastName'
-    })
-    const otherUser = await User.findAll({
-      where: {
-        [Op.or]: [
-          db.where(db.fn('char_length', db.col('firstName')), 3),
-          { firstName: 'Peter' }
-        ]
-      },
-      order: [['firstName', 'ASC']]
-    })
-    const countMe = await User.count({
-      where: {
-        id: {
-          [Op.gt]: 1
-        }
-      }
-    })
-    console.log(countMe)
-    const onlyOne = await User.findAll({ limit: 1, offset: 2 })
-    // console.log(JSON.stringify(myUser, null, 2))
-    // console.log(JSON.stringify(otherUser, null, 2))
-    console.log(JSON.stringify(onlyOne, null, 2))
-    await User.update({ lastName: 'Doe' }, {
-      where: { lastName: 'Oehman' }
-    })
+   const user1 = await User.findByPk(1)
+   console.log(JSON.stringify(user1, null, 2))
+   const Sabi = await User.findOne({ where: { firstName: 'Sabi' }})
+   console.log(JSON.stringify(Sabi, null, 2))
+   const [user, created] = await User.findOrCreate({
+     where: { firstName: 'Owen' },
+     defaults: { lastName: 'Noe' }
+   })
+   console.log(created)
+   const { count, rows } = await User.findAndCountAll({
+     where: { lastName: 'Kumar' },
+     offset: 1,
+     limit: 2
+   })
+   console.log('count: ', count)
+   console.log(JSON.stringify(rows, null, 2))
   } catch (error) {
     console.error(error)
   }
