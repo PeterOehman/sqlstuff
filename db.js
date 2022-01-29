@@ -27,16 +27,34 @@ async function create() {
   try {
     await User.create({ firstName: 'Peter', lastName: 'Oehman' })
     await User.create({ firstName: 'Bob', lastName: 'Bobby' })
+    await User.bulkCreate([
+      { firstName: 'Tyler', lastName: 'Kumar'},
+      { firstName: 'Sabi', lastName: 'Kumar'}
+    ], { validate: true }, { fields: ['firstName', 'lastName']})
     const myUser = await User.findAll({
+      attributes: ['lastName'],
       where: {
         firstName: {
-          [Op.or]: ['Peter', 'Bob']
+          [Op.or]: ['Peter', 'Sabi', 'Tyler']
         },
-        lastName: 'Oehman',
-        id: [1,2]
-      }
+        id: [1,2,3,4]
+      },
+      group: 'lastName'
+    })
+    const otherUser = await User.findAll({
+      where: {
+        [Op.or]: [
+          db.where(db.fn('char_length', db.col('firstName')), 3),
+          { firstName: 'Peter' }
+        ]
+      },
+      order: [['firstName', 'ASC']]
     })
     console.log(JSON.stringify(myUser, null, 2))
+    console.log(JSON.stringify(otherUser, null, 2))
+    await User.update({ lastName: 'Doe' }, {
+      where: { lastName: 'Oehman' }
+    })
   } catch (error) {
     console.error(error)
   }
