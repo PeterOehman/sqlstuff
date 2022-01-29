@@ -1,4 +1,4 @@
-const { Sequelize, Op } = require('sequelize')
+const Sequelize = require('sequelize')
 const db = new Sequelize('postgres://localhost:5432/sqlstuff', {
   logging: false
 })
@@ -25,18 +25,25 @@ User.talk = function() {
 
 async function create() {
   try {
-    await User.create({ firstName: 'Peter', lastName: 'Oehman' })
-    await User.create({ firstName: 'Bob', lastName: 'Bobby' })
-    const myUser = await User.findAll({
-      where: {
-        firstName: {
-          [Op.or]: ['Peter', 'Bob']
-        },
-        lastName: 'Oehman',
-        id: [1,2]
-      }
+    User.talk()
+    const user = await User.create({ firstName: 'Peter', lastName: 'Oehman' })
+    user.set({
+      firstName: "John",
+      lastName: "Duffy"
     })
-    console.log(JSON.stringify(myUser, null, 2))
+    await user.save()
+    const user2 = await User.create({ firstName: 'Bob', lastName: 'Bobby' })
+    user2.firstName = 'jack'
+    user2.lastName = 'jacky'
+    await user2.save({ fields: ['firstName'] })
+    await user2.reload()
+    const myAge = await Age.create({ age: 22 })
+    await myAge.increment('age', { by: 2 })
+    const users = await User.findAll({
+      attributes: {
+        include: [[db.fn('upper', db.col('firstName')), 'uppercase']]
+    }})
+    console.log(JSON.stringify(users, null, 2))
   } catch (error) {
     console.error(error)
   }
