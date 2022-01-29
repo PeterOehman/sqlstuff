@@ -32,12 +32,12 @@ async function create() {
       { firstName: 'Sabi', lastName: 'Kumar'}
     ], { validate: true }, { fields: ['firstName', 'lastName']})
     const myUser = await User.findAll({
-      attributes: ['lastName'],
+      attributes: [[db.fn('COUNT', db.col('firstName')), 'n_names'], 'lastName'],
       where: {
         firstName: {
           [Op.or]: ['Peter', 'Sabi', 'Tyler']
         },
-        id: [1,2,3,4]
+        id: [1,2,3,4],
       },
       group: 'lastName'
     })
@@ -50,8 +50,18 @@ async function create() {
       },
       order: [['firstName', 'ASC']]
     })
-    console.log(JSON.stringify(myUser, null, 2))
-    console.log(JSON.stringify(otherUser, null, 2))
+    const countMe = await User.count({
+      where: {
+        id: {
+          [Op.gt]: 1
+        }
+      }
+    })
+    console.log(countMe)
+    const onlyOne = await User.findAll({ limit: 1, offset: 2 })
+    // console.log(JSON.stringify(myUser, null, 2))
+    // console.log(JSON.stringify(otherUser, null, 2))
+    console.log(JSON.stringify(onlyOne, null, 2))
     await User.update({ lastName: 'Doe' }, {
       where: { lastName: 'Oehman' }
     })
