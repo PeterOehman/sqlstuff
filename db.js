@@ -13,6 +13,8 @@ const User = db.define('User', {
     timestamps: false
 })
 
+const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
+
 User.prototype.respond = function() {
   return this.firstName + ' ' + this.lastName
 }
@@ -25,20 +27,23 @@ async function create() {
   try {
     User.talk()
     const user = await User.create({ firstName: 'Peter', lastName: 'Oehman' })
-    console.log(user.toJSON())
     user.set({
       firstName: "John",
       lastName: "Duffy"
     })
     await user.save()
-    console.log(user.respond())
     const user2 = await User.create({ firstName: 'Bob', lastName: 'Bobby' })
     user2.firstName = 'jack'
     user2.lastName = 'jacky'
     await user2.save({ fields: ['firstName'] })
-    console.log(user2.toJSON())
     await user2.reload()
-    console.log(user2.toJSON())
+    const myAge = await Age.create({ age: 22 })
+    await myAge.increment('age', { by: 2 })
+    const users = await User.findAll({
+      attributes: {
+        include: [[db.fn('upper', db.col('firstName')), 'uppercase']]
+    }})
+    console.log(JSON.stringify(users, null, 2))
   } catch (error) {
     console.error(error)
   }
