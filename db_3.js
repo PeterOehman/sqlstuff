@@ -8,6 +8,18 @@ const User = db.define('User', {
   firstName: {
     type: Sequelize.STRING,
     allowNull: false,
+    unique: true,
+    validate: {
+      notIn: {
+        args: [['foo', 'bar']],
+        msg: 'cant be foo or bar!'
+      },
+      lengthCheck(value) {
+        if (value.length < 2) {
+          throw new Error('must have a longer first name!')
+        }
+      }
+    },
     get() {
       //if we used this.firstName, we would get infinite loop, this is why getDataValue is a thing
       const value = this.getDataValue('firstName')
@@ -16,13 +28,26 @@ const User = db.define('User', {
   },
   lastName: {
     type: Sequelize.STRING,
-    set(value) {
-      let hashed = bcrypt.hashSync(value, 5)
-      this.setDataValue('lastName', hashed)
+    // set(value) {
+    //   let hashed = bcrypt.hashSync(value, 5)
+    //   this.setDataValue('lastName', hashed)
+    // }
+  },
+  fullName: {
+    type: Sequelize.VIRTUAL,
+    get() {
+      return `${this.firstName} ${this.lastName}`
     }
   }
   }, {
-    timestamps: false
+    timestamps: false,
+    validate: {
+      firstIsLast() {
+        if (this.getDataValue('firstName') === this.getDataValue('lastName')) {
+          throw new Error('first and last name must be different!')
+        }
+      }
+    }
 })
 
 const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
@@ -59,7 +84,7 @@ async function create() {
    })
    console.log('count: ', count)
    console.log(JSON.stringify(rows, null, 2))
-   console.log(peter.firstName)
+   console.log(peter.fullName)
   } catch (error) {
     console.error(error)
   }
