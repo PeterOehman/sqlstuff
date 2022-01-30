@@ -1,4 +1,5 @@
 const { Sequelize, Op } = require('sequelize')
+const bcrypt = require('bcrypt')
 const db = new Sequelize('postgres://localhost:5432/sqlstuff', {
   logging: false
 })
@@ -7,8 +8,19 @@ const User = db.define('User', {
   firstName: {
     type: Sequelize.STRING,
     allowNull: false,
+    get() {
+      //if we used this.firstName, we would get infinite loop, this is why getDataValue is a thing
+      const value = this.getDataValue('firstName')
+      return value ? value.toUpperCase() : null
+    }
   },
-  lastName: Sequelize.STRING
+  lastName: {
+    type: Sequelize.STRING,
+    set(value) {
+      let hashed = bcrypt.hashSync(value, 5)
+      this.setDataValue('lastName', hashed)
+    }
+  }
   }, {
     timestamps: false
 })
@@ -25,7 +37,7 @@ User.talk = function() {
 
 async function create() {
   try {
-    await User.create({ firstName: 'Peter', lastName: 'Oehman' })
+    const peter = await User.create({ firstName: 'Peter', lastName: 'Oehman' })
     await User.create({ firstName: 'Bob', lastName: 'Bobby' })
     await User.bulkCreate([
       { firstName: 'Tyler', lastName: 'Kumar'},
@@ -47,6 +59,7 @@ async function create() {
    })
    console.log('count: ', count)
    console.log(JSON.stringify(rows, null, 2))
+   console.log(peter.firstName)
   } catch (error) {
     console.error(error)
   }
