@@ -69,7 +69,9 @@ async function create() {
       { firstName: 'Tyler', lastName: 'Kumar'},
       { firstName: 'Sabi', lastName: 'Kumar'}
     ], { validate: true }, { fields: ['firstName', 'lastName']})
-    await db.query(`UPDATE "User" SET "firstName" = 'pete' WHERE "lastName" = 'Oehman'`)
+    await db.query(`UPDATE "User" SET "firstName" = 'pete' WHERE "lastName" = ?`, {
+      replacements: ['Oehman']
+    })
     const [results, metaData] = await db.query('SELECT * FROM "User"', { type: QueryTypes.SELECT })
     const myUsers = await db.query('SELECT * FROM "User"', {
       model: User,
@@ -80,8 +82,8 @@ async function create() {
       plain: false,
       raw: false,
     })
-    console.log(ones)
-    // console.log(results)
+    // console.log(ones)
+    console.log(results)
     // console.log(myUsers)
   } catch (error) {
     console.error(error)
