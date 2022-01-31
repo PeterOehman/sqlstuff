@@ -50,6 +50,22 @@ const User = db.define('User', {
     },
     freezeTableName: true
 })
+const UserAges = db.define('UserAges', {
+  UserId: {
+    type: Sequelize.STRING,
+    references: {
+      model: User,
+      key: 'id'
+    }
+  },
+  AgeId: {
+    type: Sequelize.STRING,
+    references: {
+      model: Age,
+      key: 'id'
+    }
+  }
+})
 
 const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
 
@@ -69,15 +85,18 @@ async function create() {
       { firstName: 'Tyler', lastName: 'Kumar'},
       { firstName: 'Sabi', lastName: 'Kumar'}
     ], { validate: true }, { fields: ['firstName', 'lastName']})
-   User.hasOne(Age, {
-     foreignKey: {
-       name: 'myUserId',
-       validate: {
-         notIn: [500, 600]
-       }
-     }
-   })
-   Age.belongsTo(User)
+  //  User.hasOne(Age, {
+  //    foreignKey: {
+  //      name: 'myUserId',
+  //      allowNull: false,
+  //      validate: {
+  //        notIn: [500, 600]
+  //      }
+  //    }
+  //  })
+  //  Age.belongsTo(User)
+    User.belongsToMany(Age, { through: UserAges, uniqueKey: 'myCustumKey' })
+    Age.belongsToMany(User, { through: UserAges })
   } catch (error) {
     console.error(error)
   }
