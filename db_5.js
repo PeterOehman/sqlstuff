@@ -4,6 +4,8 @@ const db = new Sequelize('postgres://localhost:5432/sqlstuff', {
   logging: false
 })
 
+const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
+
 const User = db.define('User', {
   firstName: {
     type: Sequelize.STRING,
@@ -48,26 +50,24 @@ const User = db.define('User', {
         }
       }
     },
-    freezeTableName: true
+    // freezeTableName: true
 })
-const UserAges = db.define('UserAges', {
-  UserId: {
-    type: Sequelize.STRING,
-    references: {
-      model: User,
-      key: 'id'
-    }
-  },
-  AgeId: {
-    type: Sequelize.STRING,
-    references: {
-      model: Age,
-      key: 'id'
-    }
-  }
-})
-
-const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
+// const UserAges = db.define('UserAges', {
+//   UserId: {
+//     type: Sequelize.STRING,
+//     references: {
+//       model: User,
+//       key: 'id'
+//     }
+//   },
+//   AgeId: {
+//     type: Sequelize.STRING,
+//     references: {
+//       model: Age,
+//       key: 'id'
+//     }
+//   }
+// })
 
 User.prototype.respond = function() {
   return this.firstName + ' ' + this.lastName
@@ -79,12 +79,13 @@ User.talk = function() {
 
 async function create() {
   try {
-    await User.create({ firstName: 'Peter', lastName: 'Oehman' })
+    const me = await User.create({ firstName: 'Peter', lastName: 'Oehman' })
     await User.create({ firstName: 'Bob', lastName: 'Bobby' })
     await User.bulkCreate([
       { firstName: 'Tyler', lastName: 'Kumar'},
       { firstName: 'Sabi', lastName: 'Kumar'}
     ], { validate: true }, { fields: ['firstName', 'lastName']})
+    const myAge = await Age.create({ age: 22 })
   //  User.hasOne(Age, {
   //    foreignKey: {
   //      name: 'myUserId',
@@ -95,8 +96,12 @@ async function create() {
   //    }
   //  })
   //  Age.belongsTo(User)
-    User.belongsToMany(Age, { through: UserAges, uniqueKey: 'myCustumKey' })
-    Age.belongsToMany(User, { through: UserAges })
+    User.belongsToMany(Age, { through: 'stuff' })
+    Age.belongsToMany(User, { through: 'stuff' })
+
+    // Movie.belongsToMany(Actor, { through: 'ActorMovies' })
+    // Actor.belongsToMany(Movie, { through: 'ActorMovies' })
+    await me.addAge(myAge)
   } catch (error) {
     console.error(error)
   }
@@ -108,7 +113,7 @@ async function connect() {
     await create()
     await db.close()
   } catch (error) {
-    console.log('didnt work')
+    console.error(error)
   }
 }
 
