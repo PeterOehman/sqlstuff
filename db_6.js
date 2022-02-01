@@ -16,14 +16,13 @@ const Captain = db.define('captain', {
   }
 }, { timestamps: false })
 
-Captain.hasOne(Ship)
-Ship.belongsTo(Captain)
+// Captain.hasOne(Ship, { as: 'leader' })
+Ship.belongsTo(Captain, { as: 'leader' })
 
 async function seed() {
   try {
     const captain = await Captain.create({ name: 'Jack Sparrow', skillLevel: 9 })
-    const ship = await Ship.create({ name: 'Old Reliable', crewCapacity: 20, amountOfSails: 5 })
-    await captain.setShip(ship)
+    const ship = await Ship.create({ name: 'Old Reliable', crewCapacity: 20, amountOfSails: 5, leaderId: 1 })
   } catch (error) {
     console.error(error)
   }
@@ -33,15 +32,17 @@ async function associate() {
   try {
     await seed()
     //lazy loading
-    const awesomeCaptain = await Captain.findOne({ where: { name: 'Jack Sparrow' } })
-    const hisShip = await awesomeCaptain.getShip()
-    console.log(hisShip.name)
+    // const awesomeCaptain = await Captain.findOne({ where: { name: 'Jack Sparrow' } })
+    // const hisShip = await awesomeCaptain.getShip()
+    const ship = Ship.findOne()
+    console.log((await ship.getLeader()).toJSON())
+    // console.log(hisShip.name)
     //eager loading
-    const captainWithShip = await Captain.findOne({
-      where: { name: 'Jack Sparrow' },
-      include: Ship
+    const captainWithShip = await Ship.findOne({
+      where: { name: 'Old Reliable' },
+      include: 'leader'
     })
-    console.log(captainWithShip.ship.name)
+    console.log(captainWithShip.toJSON())
   } catch (error) {
     console.error(error)
   }
