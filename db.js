@@ -11,11 +11,12 @@ const Movie = db.define('Movie', { name: Sequelize.STRING })
 
 const Actor = db.define('Actor', { name: Sequelize.STRING })
 
-User.belongsToMany(Age, { through: 'UserAges' })
-Age.belongsToMany(User, { through: 'UserAges' })
 
+  User.belongsToMany(Age, { through: 'UserAges' })
+Age.belongsToMany(User, { through: 'UserAges' })
 Movie.belongsToMany(Actor, { through: 'ActorMovies' })
 Actor.belongsToMany(Movie, { through: 'ActorMovies' })
+
 
 async function create() {
   try {
@@ -30,6 +31,7 @@ async function create() {
     // Age.belongsToMany(User, { through: 'UserAges' })
     // //Line 25 creates the error 'relation "UserAges" does not exist'
     // await people[1].addAge(myAge)
+    make()
     const person = await User.create({ name: 'Yox' })
     const age = await Age.create({ age: 22 })
 
@@ -45,8 +47,8 @@ async function create() {
 
 async function connect() {
   try {
-    await create()
     await db.sync({ force: true })
+    await create()
     await db.close()
   } catch (error) {
     console.error(error)
