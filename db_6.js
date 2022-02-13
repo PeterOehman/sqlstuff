@@ -16,13 +16,13 @@ const Captain = db.define('captain', {
   }
 }, { timestamps: false })
 
-// Captain.hasOne(Ship, { as: 'leader' })
-Ship.belongsTo(Captain, { as: 'leader' })
+Captain.hasOne(Ship /* , { as: 'leader' } */ )
+Ship.belongsTo(Captain /* , { as: 'leader', foreignKey: 'bossId' } */ )
 
 async function seed() {
   try {
-    const captain = await Captain.create({ name: 'Jack Sparrow', skillLevel: 9 })
-    const ship = await Ship.create({ name: 'Old Reliable', crewCapacity: 20, amountOfSails: 5, leaderId: 1 })
+    await Captain.create({ name: 'Jack Sparrow', skillLevel: 9 })
+    await Ship.create({ name: 'Old Reliable', crewCapacity: 20, amountOfSails: 5 /*, captainId: 1 */ })
   } catch (error) {
     console.error(error)
   }
@@ -34,15 +34,25 @@ async function associate() {
     //lazy loading
     // const awesomeCaptain = await Captain.findOne({ where: { name: 'Jack Sparrow' } })
     // const hisShip = await awesomeCaptain.getShip()
-    const ship = Ship.findOne()
-    console.log((await ship.getLeader()).toJSON())
+    const ship = await Ship.findOne()
+    const captain = await Captain.findOne()
+    await captain.setShip(ship)
+    console.log((await captain.getShip()).toJSON())
     // console.log(hisShip.name)
     //eager loading
-    const captainWithShip = await Ship.findOne({
-      where: { name: 'Old Reliable' },
-      include: 'leader'
-    })
-    console.log(captainWithShip.toJSON())
+    // const captainWithShip = await Ship.findOne({
+    //   where: { name: 'Old Reliable' },
+    //   include: 'captain'
+    // })
+    // console.log(captainWithShip.toJSON())
+    await captain.createShip({ name: 'speedy', crewCapacity: 10, amountOfSails: 2 })
+    // const newShip = await captain.getShip()
+    // console.log(newShip.name)
+    console.log((await captain.getShip()).toJSON())
+    await captain.setShip(null)
+    console.log((await captain.getShip()).toJSON())
+    await captain.createShip({ name: 'speedster', crewCapacity: 10, amountOfSails: 2 })
+    console.log((await captain.getShip()).toJSON())
   } catch (error) {
     console.error(error)
   }

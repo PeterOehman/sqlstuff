@@ -31,7 +31,6 @@ async function create() {
     // Age.belongsToMany(User, { through: 'UserAges' })
     // //Line 25 creates the error 'relation "UserAges" does not exist'
     // await people[1].addAge(myAge)
-    make()
     const person = await User.create({ name: 'Yox' })
     const age = await Age.create({ age: 22 })
 
