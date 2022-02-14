@@ -16,10 +16,20 @@ const Tool = db.define('tool', {
   size: Sequelize.STRING
 }, { timestamps: false })
 
+const Foo = db.define('foo', {
+  name: Sequelize.TEXT
+}, { timestamps: false})
+
+const Bar = db.define('bar', {
+  name: Sequelize.TEXT
+}, { timestamps: false })
+
 User.hasMany(Task)
 Task.belongsTo(User)
 User.hasMany(Tool, { as: 'Instruments' })
 // Tool.belongsTo(User)
+Foo.belongsToMany(Bar, { through: 'Foo_Bar', })
+Bar.belongsToMany(Foo, { through: 'Foo_Bar' })
 
 async function create() {
   try {
@@ -28,6 +38,9 @@ async function create() {
     const tool = await Tool.create({ name: 'scissor', size: 'small' })
     await user.addTask(task)
     await user.addInstrument(tool)
+    const foo = await Foo.create({ name: 'foo' })
+    const bar = await Bar.create({ name: 'bar' })
+    await foo.addBar(bar)
     //required true will not return any tasks that dont have a user
     // const tasks = await Task.findAll({ include: { model: User, required: true }})
     // console.log(JSON.stringify(tasks, null, 2))
@@ -37,7 +50,7 @@ async function create() {
       // where: {
       //   '$Instruments.size$': { [Op.ne]: 'medium'}
       // },
-      include: {
+      include: [{
         model: Tool,
         as: 'Instruments',
         where: {
@@ -47,9 +60,13 @@ async function create() {
           }
         },
         required: false
-      }
+      },
+      Task]
     })
     console.log(JSON.stringify(tools, null, 2))
+
+    const fetchedFoo = await Foo.findOne({ include: Bar })
+    console.log(JSON.stringify(fetchedFoo, null, 2))
   } catch (error) {
     console.error(error)
   }
