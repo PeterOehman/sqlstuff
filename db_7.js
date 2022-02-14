@@ -48,7 +48,7 @@ const create = async function() {
   await foo.addBars([bar1, bar2])
   console.log(await foo.countBars())
   const bars = (await foo.getBars())
-  console.log(bars[0].toJSON(), bars[1].toJSON())
+  console.log(JSON.stringify(bars, null, 2))
   await foo.addBar(bar1)
   console.log(await foo.countBars())
   console.log(await foo.hasBar(bar1))
