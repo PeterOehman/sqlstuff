@@ -4,7 +4,12 @@ const db = new Sequelize('postgres://localhost:5432/sqlstuff', {
   logging: false
 })
 
-const Age = db.define('Age', { age: Sequelize.INTEGER }, { timestamps: false })
+const Age = db.define('Age', {
+  age: {
+    type: Sequelize.INTEGER,
+    unique: true
+  }
+}, { timestamps: false })
 
 const User = db.define('User', {
   firstName: {
@@ -22,11 +27,12 @@ const User = db.define('User', {
         }
       }
     },
-    get() {
-      //if we used this.firstName, we would get infinite loop, this is why getDataValue is a thing
-      const value = this.getDataValue('firstName')
-      return value ? value.toUpperCase() : null
-    }
+    //this get is commented out as it messes with creating a custom sourcekey in our through table
+    // get() {
+    //   //if we used this.firstName, we would get infinite loop, this is why getDataValue is a thing
+    //   const value = this.getDataValue('firstName')
+    //   return value ? value.toUpperCase() : null
+    // }
   },
   lastName: {
     type: Sequelize.STRING,
@@ -77,6 +83,9 @@ User.talk = function() {
   console.log('Im a class method!')
 }
 
+  User.belongsToMany(Age, { through: 'stuff', targetKey: 'age', sourceKey: 'firstName' })
+  // Age.belongsToMany(User, { through: 'stuff' })
+
 async function create() {
   try {
     const me = await User.create({ firstName: 'Peter', lastName: 'Oehman' })
@@ -96,8 +105,6 @@ async function create() {
   //    }
   //  })
   //  Age.belongsTo(User)
-    User.belongsToMany(Age, { through: 'stuff' })
-    Age.belongsToMany(User, { through: 'stuff' })
 
     // Movie.belongsToMany(Actor, { through: 'ActorMovies' })
     // Actor.belongsToMany(Movie, { through: 'ActorMovies' })
