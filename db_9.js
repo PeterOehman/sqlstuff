@@ -5,12 +5,12 @@ const db = new Sequelize('postgres://localhost:5432/sqlstuff', {
 
 const Product = db.define('product', {
   title: Sequelize.STRING
-}, { logging: false })
+}, { timestamps: false })
 
 const User = db.define('user', {
   firstName: Sequelize.STRING,
   lastName: Sequelize.STRING
-}, { logging: false })
+}, { timestamps: false })
 
 const Address = db.define('address', {
   type: Sequelize.STRING,
@@ -19,34 +19,54 @@ const Address = db.define('address', {
   city: Sequelize.STRING,
   state: Sequelize.STRING,
   zip: Sequelize.STRING
-}, { logging: false })
+}, { timestamps: false })
 
-Product.User = Product.belongsTo(User)
+const Tag = db.define('tag', {
+  name: Sequelize.STRING
+}, { timestamps: false })
+
+// Product.User = Product.belongsTo(User)
+const Creator = Product.belongsTo(User, { as: 'creator' })
 User.hasMany(Product)
 User.Addresses = User.hasMany(Address)
 Address.belongsTo(User)
+Product.hasMany(Tag)
 
 async function create() {
   try {
+    // await Product.create({
+    //   title: 'chair',
+    //   user: {
+    //     firstName: 'Mick',
+    //     lastName: 'VBroadstone',
+    //     addresses: [{
+    //       type: 'home',
+    //       line1: '100 Main St.',
+    //       city: 'Austin',
+    //       state: 'TX',
+    //       zip: '78704'
+    //     }]
+    //   }
+    // }, {
+    //   include: [{
+    //     association: Product.User,
+    //     include: [ User.Addresses ]
+    //   }]
+    // })
     await Product.create({
       title: 'chair',
-      user: {
-        firstName: 'Mick',
-        lastName: 'VBroadstone',
-        addresses: [{
-          type: 'home',
-          line1: '100 Main St.',
-          city: 'Austin',
-          state: 'TX',
-          zip: '78704'
-        }]
+      creator: {
+        firstName: 'Matt',
+        lastName: 'Manson'
       }
-    }, {
-      include: [{
-        association: Product.User,
-        include: [ User.Addresses ]
-      }]
-    })
+    }, { include: [ Creator ]})
+    await Product.create({
+      title: 'table',
+      tags: [
+        { name: 'alpha' },
+        { name: 'beta' }
+      ]
+    }, { include: [ Tag ]})
   } catch (error) {
     console.error(error)
   }
