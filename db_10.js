@@ -22,23 +22,31 @@ const Grant = db.define('Grant', {
   selfGranted: Sequelize.BOOLEAN
 }, { timestamps: false })
 
-User.belongsToMany(Profile, { through: Grant })
-Profile.belongsToMany(User, { through: Grant })
+User.belongsToMany(Profile, {
+  through: Grant,
+  foreignKey: 'personId',
+  otherKey: 'myprofileId'
+})
+Profile.belongsToMany(User, {
+  through: Grant,
+  foreignKey: 'myprofileId',
+  otherKey: 'personId'
+})
 
 //This is effectively the same as a many to many between user and profile with grant as the through
 //doing both with give you lots of association methods to work with
-User.hasMany(Grant)
-Grant.belongsTo(User)
+// User.hasMany(Grant)
+// Grant.belongsTo(User)
 
-Profile.hasMany(Grant)
-Grant.belongsTo(Profile)
+// Profile.hasMany(Grant)
+// Grant.belongsTo(Profile)
 
 async function create() {
   try {
     // const amildala = await User.create({ username: 'p4dm3', points: 1000 })
     // const queen = await Profile.create({ name: 'Queen' })
     // await amildala.addProfile(queen, { through: { selfGranted: false }})
-   await User.create({
+   const user = await User.create({
       username: 'p4dm3',
       points: 1000,
       profiles: [{
@@ -50,10 +58,18 @@ async function create() {
     }, {
       include: Profile
     })
-    const result = await User.findOne({
-      where: { username: 'p4dm3' },
-      include: Profile
-    })
+    // const result = await User.findOne({
+    //   where: { username: 'p4dm3' },
+    //   include: {
+    //     model: Profile,
+    //     through: {
+    //       attributes: ['selfGranted']
+    //     }
+    //   }
+    // })
+    //this is the same as the above code, note that user has to be an instance here
+    //attributes in the above is replaced with joinTableAttributes
+    const result = await user.getProfiles({ joinTableAttributes: ['selfGranted'] })
     console.log(JSON.stringify(result, null, 2))
 
     //with two one to many relationships you can do these:
